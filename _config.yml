@@ -20,7 +20,7 @@ description: >-                        # used by seo meta and the atom feed
 # Replace with the website url, e.g. 'https://username.github.io'
 url: 'https://karmastring.github.io'
 
-author: Karma String /Users/karma/Downloads/jekyll-theme-hamilton-master/assets # change to your full name
+author: Karma String # /Users/karma/Downloads/jekyll-theme-hamilton-master/assets # change to your full name
 
 avatar: /akane.jpg   # support internet resources
 
