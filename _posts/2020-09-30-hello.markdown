@@ -1,8 +1,8 @@
 ---
 title: Hello World!
 data: 2020-09-30 22:45:00 -0400
-categories: hello
-tags: hello
+categories: [hello]
+tags: [hello]
 image: /assets/img/blog/hello.png
 math: true
 ---
