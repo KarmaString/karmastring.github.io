@@ -10,12 +10,10 @@
 
 title: Karma's Blog                    # the main title
 
-tagline: A text-focused Jekyll theme.  # it will display as the sub-title
+tagline: Papers & Methodologies & Psychologies  # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
-  A minimal, portfolio, sidebar,
-  bootstrap Jekyll theme with responsive web design
-  and focuses on text presentation.
+    papers, blog, methodology, note, psychology, mind, karmastring
 
 # Replace with the website url, e.g. 'https://username.github.io'
 url: 'https://karmastring.github.io'
@@ -83,7 +81,7 @@ theme_mode: dual
 # boolean type, global switch for ToC in posts.
 toc: true
 
-paginate: 10
+paginate: 7
 
 markdown: kramdown
 
