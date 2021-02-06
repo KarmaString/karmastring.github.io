@@ -1,5 +1,5 @@
 ---
-title: Paper Reading "CVPR20 - VIBE: Video Inference for Human Body Pose and Shape Estimation"
+title: "Paper Reading \"CVPR20 - VIBE: Video Inference for Human Body Pose and Shape Estimation\""
 date: 2020-10-05 15:15:00 -0400
 categories: [Research]
 tags: [PaperReading, Unfinished]
