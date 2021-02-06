@@ -1,5 +1,5 @@
 ---
-title: Paper Reading "[ICCV19] Skeleton-Aware 3D Human Shape Reconstruction From Point Clouds"
+title: Paper Reading "ICCV19 - Skeleton-Aware 3D Human Shape Reconstruction From Point Clouds"
 date: 2021-02-04 17:15:00 -0400
 categories: [Research]
 tags: [PaperReading, Unfinished]
@@ -82,7 +82,7 @@ Online Tuning:
 - [13]
   - directly learn to reconstruct 3D human from point clouds
   - directly learned to deform a given template for human reconstruction, but often obtained twisted human shapes, especially in the shape arms.
-  - a Laplacian term to regularize/smooth over-bent shapes
+  - **a Laplacian term to regularize/smooth over-bent shapes**
 - [20]
   - directly learn to reconstruct 3D human from point clouds
   - proposed a variational auto-encoder to learn for deformable shape completion, which often results in rugged surfaces.
@@ -112,6 +112,7 @@ Online Tuning:
 # 未解决的疑问
 ---
 - 如何做graph convolutional networks？（基础知识欠缺）
+- Chamfer distance是如何计算的？
 
 
 
