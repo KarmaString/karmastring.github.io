@@ -34,6 +34,7 @@ math: true
 ---
 
 # 方法
+
 ### 概述
 
 大体由三个模块组成：
@@ -65,14 +66,19 @@ Online Tuning:
 
 - loss: Chamfer distance between the input point cloud and the reconstructed mesh.
 
+### 总结
+
+基本上没有太多的知识点，methodology依赖于以下知识/概念：
+
+- PointNet/PointNet++ [34, 35] 来处理基础的点云
+- 基于fast spectral convolution [36, 17, 11] 的graph convolution来处理点云中点之间的关系，以及joint之间的关系
+- Attention mechanism [常见的neural network中aggregation的方法] 来将unordered point features映射为ordered skeleton joint features
+
 ---
 
 # 实验
----
 
-- Criteria：
-  - 3DPW [61]
-  - MPI-INF-3DHP [42]
+- To be recorded.
 
 # 值得注意的reference
 ---
