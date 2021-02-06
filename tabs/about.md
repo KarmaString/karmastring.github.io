@@ -8,4 +8,4 @@ title: About
 # MIT License
 ---
 
-> **Note**: Add Markdown syntax content to file `tabs/about.md` and it will show up on this page.
+If you have any question about the blog, please feel free to contact me by karma.string.0927@gmail.com

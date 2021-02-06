@@ -1,6 +1,6 @@
 ---
 title: Hello World!
-data: 2020-09-30 22:45:00 -0400
+date: 2020-09-30 22:45:00 -0400
 categories: [Manual]
 tags: [hello, Unfinished]
 image: /assets/img/blog/hello.png
@@ -51,6 +51,7 @@ $$ Life=\int_{birth}^{death}Experience(t)\,dt $$
   - `Manual`: 涉及到某个小方面的系统知识，记录下来以便用到的时候查找。
 - Tags目前包括：
   - `PaperReading`: 对于一篇paper的记录，可能包含整个框架，也可能只包含某个细节，具体视当前research的需求而定。
+    - `BookReading`: 对于一本书的记录，大致包含整本书的框架，以及比较有用的点，具体记录的内容也会受到个人认知局限的影响。
   - `Unfinished`: 说明一篇文章只是阶段性完成了，以后还会被修改。
 
 # 最后
