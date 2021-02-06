@@ -78,7 +78,33 @@ Online Tuning:
 
 # 实验
 
-- To be recorded.
+### dataset
+
+- Synthesized Dataset: SURREAL dataset[43] provides SMPL shape and pose parameters for models captured in real scenarios, which enables generations of large numbers of human shapes with large variations and reasonable poses.
+- Dyna Dataset [32] offers registered meshes with SMPL topology.
+- DFAUST Dataset [6] provides raw scans of several persons in different motions.
+- Berkeley MHAD dataset [26] provides two depth sequences from Kinect with human joint locations.
+
+### Metrics
+
+- Synthesized dataset & Dyna Dataset (who have ground truth): the average vertex-wise Euclidean distance. (Note that we use vertex-wise distance rather than vertex-to-surface distance as it can better reﬂect the distortion of reconstructed results.)
+- DFAUST dataset & MHAD dataset (unknown ground truth): the average point-to-vertex distance.
+
+### Ablation Study
+
+- 借由替换提出的三个模块，作者证明了每个模块的有用性
+- 列出了initial results和fine tuning results，证明了fine tuning的有用性
+- 值得注意的是，作者**将身体不同地方loss用颜色可视化在了Mesh上**，并展示了fine tuning后身体各处的loss减少了
+
+### Comparisons to the State-of-the-art
+
+- Baseline是 3DCODED [13] 和 SMPLify [5]  (SMPLify-mesh & SMPLify-pcd)。其中SMPLify-mesh is in fact the upper bound, indicating the best that SMPL model can produce given the ground-truth mesh with the same topology. 通过数值比较证明了提出的方法的有效性和准确性。
+- 在没有ground truth的数据集上给出了visualize的结果。通过visualization证明了提出的方法的准确性。
+
+### Limitation
+
+- 作者说our method has relatively large errors in female shape reconstruction，especially in chest, belly, and hip part。We conjecture this is inherited from the SMPL representation, since SMPLify-mesh exhibits similar problems. The possible reason may be that SMPL model only uses 10 parameters for shapes, which makes it hard to model body parts with a larger derivation from neutral shapes.
+- Another major limitation is that our method is restricted to SMPL model and can only reconstruct naked human shapes.
 
 # 值得注意的reference
 ---
@@ -89,6 +115,7 @@ Online Tuning:
   - directly learn to reconstruct 3D human from point clouds
   - directly learned to deform a given template for human reconstruction, but often obtained twisted human shapes, especially in the shape arms.
   - **a Laplacian term to regularize/smooth over-bent shapes**
+  - Baseline
 - [20]
   - directly learn to reconstruct 3D human from point clouds
   - proposed a variational auto-encoder to learn for deformable shape completion, which often results in rugged surfaces.
@@ -108,6 +135,9 @@ Online Tuning:
   - reconstruct human shape by predicting dense correspondence to a body surface
 - [19]
   - proposed to use LSTM to leverage joint relations, but it only allows to propagate features from parent joints to their children.
+- [5] SMPLify
+  - proposed several important pose priors to prevent over-bent shapes and achieve successful reconstruction.
+  - SMPLify-mesh 可以给出reconstruction的上界
 - 文中提到了三类graph convolutional networks:
   - spatial-based methods [25, 41] learn features by directly filtering local neighbors on graph, and only a limited number of neighbors can be considered in each layer because of memory restriction.
   - Spectral-based methods [7, 23] learn features in Fourier domain constructed by the eigen-decomposition of Laplacian matrix. However, the unstable and computationally expensive eigen-decomposition makes it unsuitable to process noisy point data.
