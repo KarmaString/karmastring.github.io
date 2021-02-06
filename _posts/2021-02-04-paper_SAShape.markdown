@@ -1,5 +1,5 @@
 ---
-title: "Paper Reading \"ICCV19 - Skeleton-Aware 3D Human Shape Reconstruction From Point Clouds\""
+title: "Paper Reading \"ICCV19 - Skeleton-Aware 3D Human Shape Reconstruction From Point Clouds \""
 date: 2021-02-04 17:15:00 -0400
 categories: [Research]
 tags: [PaperReading, Unfinished]
