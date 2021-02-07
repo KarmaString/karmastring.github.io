@@ -1,0 +1,24 @@
+---
+title: "TED Notes"
+date: 2021-02-05 21:00:00 -0400
+categories: [Mind]
+tags: [TED, Note, Continuous]
+image: /assets/img/blog/TED.png
+mermaid: true
+---
+
+# 概述
+
+这篇博客主要用来持续地记录观看TED见到的一些思想、启发和表达。
+
+```mermaid
+ gantt
+  title TED Video Watching
+  section Choice
+  v1 :active, 2021-02-05, 2d
+  v2 :active, 2021-02-06, 2d
+```
+
+### v1: [The paradox of choice](https://www.ted.com/talks/barry_schwartz_the_paradox_of_choice)
+
+### v2: [How to make hard choices](https://www.ted.com/talks/ruth_chang_how_to_make_hard_choices)
