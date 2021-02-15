@@ -22,3 +22,5 @@ mermaid: true
 ### v1: [The paradox of choice](https://www.ted.com/talks/barry_schwartz_the_paradox_of_choice)
 
 ### v2: [How to make hard choices](https://www.ted.com/talks/ruth_chang_how_to_make_hard_choices)
+
+### v3: [Do you really know why you do what you do](https://www.ted.com/talks/petter_johansson_do_you_really_know_why_you_do_what_you_do)
