@@ -1,35 +1,44 @@
 ---
-title: "ICCV19 - Skeleton-Aware 3D Human Shape Reconstruction From Point Clouds"
-date: 2021-02-04 17:15:00 -0400
+title: "CVPR18 - End-to-end Recovery of Human Shape and Pose"
+date: 2021-02-16 18:45:00 -0400
 categories: [Research]
 tags: [PaperReading, Unfinished]
-image: /assets/img/blog/SAShape.png
+image: /assets/img/blog/E2ERecovery.png
 math: true
 ---
 
 # 概述
 ---
 
-这篇paper"_Skeleton-Aware 3D Human Shape Reconstruction From Point Clouds_"是在ICCV2019上发表的。根据作者的叙述，这可能是**第一篇用点云数据并辅以SMPL Model来做3D human reconstruction的文章**。以下用`SAShape`来指代这篇paper。
+这篇paper"_End-to-end Recovery of Human Shape and Pose_"是在CVPR2018上发表的。在给出图片中人的Bounding box后， 这篇paper里的方法可以real-time地从2D image中重构出人的3D Mesh。
 
 ### 目标
-用3D Point Cloud数据生成人的3D Shape （在具体实现中，作者先在synthesized dataset上做了supervised training，再于unseen dataset上做unsupervised fine-tuning）
+
+从单张的2D RGB图像中重构出图像中人的3D mesh。作者提出的model可以使用2D-to-3D的supervision进行训练，也可以不使用任何paired 2D-to-3D supervision来进行weakly-supervised training。
+
+### 面临的问题
+
+作者列出了三个challenges：
+
+- 缺少3D的对应数据。The lack of large-scale ground truth 3D annotation for in-the-wild images.
+- 2D到3D映射的ambiguities。The inherent ambiguities in single-view 2D-to-3D mapping.
+- rotation matrices比较难regress出来。已有的一些工作是将其离散化，并变成一个分类问题解决的 [46]。
 
 ### 主要贡献：
-- Skeleton awareness，即在直接的point feature到SMPL parameter的映射中间，加了一层skeleton joint feature。作者在Introduction中提到，最直接达成目标的方案就是先用PointNet/PointNet++提取点云的feature，再将feature直接feed到SMPL中来得到3D Mesh。不过，由于SMPL中的shape和pose interact in a highly nonlinear way[16,31]，作者就提出用这个skeleton aware的方式，先预估出骨架的位置（也就是pose的信息），再进一步得到对应的SMPL model的pose和shape parameter。
-- 三个module：在原始的PointNet++中加入graph aggregation module；在PointNet++后加入attention module；在计算skeleton feature的过程中加入skeleton graph module。
+
+- 作者认为其核心贡献是：take advantage of these unpaired 2D keypoint annotations and 3D scans in a conditional generative adversarial manner.
+- Infer 3D mesh parameters directly from image features, while previous approaches infer them from 3D keypoints. 作者认为这样做avoids the need for two stage training以及avoids throwing away a lot of image information.
+- 输出Mesh。Output meshes instead of skeletons.
+- The framework is end-to-end.
+- The model can be trained without paired 2D-to-3D data.
 
 ### 核心reference：
-- [34;`PointNet`] Pointnet: Deep learning on point sets for 3d classiﬁcation and segmentation [CVPR17]
-  - 经典点云处理方案
-- [35;`PointNet++`] Pointnet++: Deep hierarchical feature learning on point sets in a metric space [NIPS17]
-  - 经典点云处理方案
-- [21; `SMPL`] SMPL: A skinned multiperson linear model [SIGGRAPHAsia15]
-  - 3D Human Mesh是基于SMPL model的
-  - 作者指出了SMPL的好处如下：
-    - SMPL allows independent analysis or control of shape or pose
-    - SMPL avoids the direct modeling of rugged and twisted shapes
-    - SMPL is differentiable and thus can be easily integrated with neural networks
+
+- [24; `SMPL`] SMPL: A skinned multiperson linear model [SIGGRAPHAsia15]
+  - SMPL parameterizes the mesh by 3D joint angles and a low-dimensional linear shape space.
+  - The output mesh can be immediately used by animators, modified, measured, manipulated and retargeted.
+  - It is non-trivial to estimate the full pose of the body from only the 3D joint locations, since joint locations alone do not constrain the full DoF at each joint.
+  - Predicting rotations also ensures that limbs are symmetric and of valid length.
 
 ---
 
@@ -37,11 +46,18 @@ math: true
 
 ### 概述
 
-大体由三个模块组成：
+原理： 使用adversarial NN，借由对大量3D scans的数据训练，discriminator可以分辨出生成的SMPL的parameter是否plausible （与传统中一样，这个discriminator的训练是和model其他部分训练交叉进行的）。 然后作者直接使用 unpaired 2D keypoint annotations 的数据用reprojection loss 来进行训练，并加入discriminator的weakly-supervision， 让其能够单张的2D RGB图像中重构出图像中人的3D mesh。如果paired 3D annotation也存在的话，还会加上3D keypoint的loss。
 
-- a modified PointNet++ module： 用来提取point cloud feature
-- an attention module：将unordered point features 映射为ordered skeleton joint features
-- a skeleton graph module： 用graph convolution从skeleton joint features中生成SMPL需要的参数
+### 详细过程
+
+- 第一步：生成必要的参数
+  - 作者先将原始图片直接输入`ResNet-50`，得到一个2048维的向量
+  - 将这个2048维的向量，通过`3D Regression Module`得到85个参数 $\Theta$
+  - $\Theta=\{\theta, beta, R, t, s\}$；其中$\theta$（23x3个pose参数）和$\beta$（10个shape参数）是SMPLmodel的输入参数；$R$（可以由一个长度为3的旋转向量表示）是global rotation；$t$（2个参数）是x，y平面上的translation；$s$ （1个参数）mesh的scale。
+- 第二步：用SMPL生成Mesh，并计算reprojection loss，3D loss和adversarial loss。
+  - 目标的Mesh是用SMPL生成的，即$M(\theta, \beta)$。另外SMPL还会给出对应的3D joints，即$X(\theta, \beta)$
+  - 有了3D joints之后，可以将其映射回2D的image: $\hat{x} = s\Pi (RX(\theta, \beta))+t$
+  -于是我们有了一个reprejection的loss：$L_{reproj}$
 
 ### Modified PointNet++ Module
 
@@ -108,8 +124,7 @@ Online Tuning:
 
 ### Comparisons to the State-of-the-art
 
-- Baseline是 3DCODED [13] 和 SMPLify [5]  (SMPLify-mesh & SMPLify-pcd)。其中SMPLify-mesh is in fact the upper bound, indicating the best that SMPL model can produce given the ground-truth mesh with the same topology. 通过数值比较证明了提出的方法的有效性和准确性。
-- 在没有ground truth的数据集上给出了visualize的结果。通过visualization证明了提出的方法的准确性。
+- Baseline: [5, 20]
 
 ### Limitation
 
