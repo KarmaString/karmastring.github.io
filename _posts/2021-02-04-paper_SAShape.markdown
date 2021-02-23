@@ -60,20 +60,20 @@ math: true
 Offline Training: 
 
 - synthesized dataset
-- 2 losses: vertex distance \( \lambda_v a^2 \); Laplacian term to regularize/smooth over-bent shapes \( \lambda_{lap} \)
+- 2 losses: vertex distance $ \lambda_v $; Laplacian term to regularize/smooth over-bent shapes $ \lambda_{lap} $
 
 > $$L_v={1\over{N_4}} \sum^{N_4}_{i=1} ||\hat{v}_i-v_i||^2_2$$  
-> In which \(\hat{v_i}\) is the vertex in the reconstructed mesh, and \(v_i\) is the vertex in the ground truth mesh.
+> In which $\hat{v_i}$ is the vertex in the reconstructed mesh, and $v_i$ is the vertex in the ground truth mesh.
 
 Online Tuning:
 
 - loss: Chamfer distance between the input point cloud and the reconstructed mesh.
 
 > $$L_{ch}=\sum^{N_4}_{i=1} min_{j \in [1, N_1]} ||\hat{v_i} - p_j||^2_2 + \sum^{N_1}_{j=1} min_{i \in [1, N_4]} ||p_j - \hat{v_i}||^2_2$$  
-> In which \(\hat{v_i}\) is the vertex in the reconstructed mesh, and \(p_j\) is the point in the point cloud.  
+> In which $\hat{v_i}$ is the vertex in the reconstructed mesh, and $p_j$ is the point in the point cloud.  
 > 也就是说，在公式前半部分，对于生成的Mesh上的每个点，找到其对应的point cloud上的点之间的距离，并求和；公式后半部分，则反过来  
 >  以上理解参考了 [_C-LOG: A Chamfer distance based algorithm for localisation in occupancy grid-maps_ ](https://www.sciencedirect.com/science/article/pii/S2468232216300555)中对Chamfer distance的说法，它是一种图像中的matching算法。如果我们用U来表示query image，用V表示reference image，则：  
-> The Chamfer distance between U and V is given by the average of distances between each point ui∈U, n(U) = n and its nearest edge in V  
+> The Chamfer distance between $U$ and $V$ is given by the average of distances between each point $u_i \in U$, $n(U) = n$ and its nearest edge in $V$    
 > $$d_{CD}={1 \over n} \sum_{u_i \in U} {min}_{v_j \in V}|u_i-v_j|$$
 
 ### 总结

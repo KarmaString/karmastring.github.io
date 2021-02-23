@@ -39,6 +39,10 @@ math: true
   - The output mesh can be immediately used by animators, modified, measured, manipulated and retargeted.
   - It is non-trivial to estimate the full pose of the body from only the 3D joint locations, since joint locations alone do not constrain the full DoF at each joint.
   - Predicting rotations also ensures that limbs are symmetric and of valid length.
+- [47] Adversarial inverse graphics networks: Learning 2d-to-3d lifting and image-to-image translation from unpaired supervision.
+  - Adversarial Prior
+- [7] Human pose estimation with iterative error feedback
+  - Iterative error feedback loop.
 
 ---
 
@@ -56,20 +60,32 @@ math: true
   - $\Theta=\{\theta, beta, R, t, s\}$；其中$\theta$（23x3个pose参数）和$\beta$（10个shape参数）是SMPLmodel的输入参数；$R$（可以由一个长度为3的旋转向量表示）是global rotation；$t$（2个参数）是x，y平面上的translation；$s$ （1个参数）mesh的scale。
 - 第二步：用SMPL生成Mesh，并计算reprojection loss，3D loss和adversarial loss。
   - 目标的Mesh是用SMPL生成的，即$M(\theta, \beta)$。另外SMPL还会给出对应的3D joints，即$X(\theta, \beta)$
-  - 有了3D joints之后，可以将其映射回2D的image: $$\hat{x} = s\Pi (RX(\theta, \beta))+t$$
-  - 对于所有的数据，我们有了一个reprejection的loss：$$L_{reproj}=\sum_i||v_i(x_i-\hat{x}_i)||_1$$ 其中$x_i \in \mathbb{R}^{2 \times K}$，为第$i$个ground truth 2D joints。$v_i \in \{0, 1\}^K$是visibility，当对应joint可见时为1，不可见时为0。
-  - 额外的，对于那些有着对应ground truth 3D joints的数据，还有3D loss： $$L_{3D}=L_{3D joints}+L_{3D smpl}$$其中$$L_{3D joints}=||X_i-\hat{X}_i||^2_2$$，即生成的3D joints与ground truth 3D joints的欧氏距离的平方。$$L_{3D smpl}=||[\beta_i, \theta_i]-[\hat{\beta_i}, \hat{\theta_i}]||^2_2$$，即参数之差的平方和。
-  - 对于所有的数据，还有一个adversarial loss。对encoder来说，目标是：$$\min L_{adv}(E)=\sum_i \mathbb{E}_{\Theta \sim p_E}[(D_i(E(I))-1)^2]$$即希望encoder能够让discriminator将其生成的参数判断为真。相对的对于discriminator，目标是：$$\min L_{dis}(D_i)=\mathbb{E}_{\Theta \sim data}[(D_i(\Theta)-1)^2]+\mathbb{E}_{\Theta \sim p_E}[D_i(E(I))^2]$$，即希望discriminator能将生成的3D Mesh参数判断为假，同时将数据中3D Mesh参数判断为真。
+  - 有了3D joints之后，可以将其映射回2D的image: $\hat{x} = s\Pi (RX(\theta, \beta))+t$
+  - 对于所有的数据，我们有了一个reprejection的loss: $L_{reproj}=\sum_i||v_i(x_i-\hat{x}_i)||_1$  
+    其中$x_i \in \mathbb{R}^{2 \times K}$，为第$i$个ground truth 2D joints；$v_i \in \{0, 1\}^K$是visibility，当对应joint可见时为1，不可见时为0。
+  - 额外的，对于那些有着对应ground truth 3D joints的数据，还有3D loss: $L_{3D}=L_{3D joints}+L_{3D smpl}$  
+    其中  
+       $$L_{3DJoints} = || X_i - \hat{X}_i ||^2_2$$  
+    即生成的3D joints与ground truth 3D joints的欧氏距离的平方。  
+       $$L_{3DSMPL}=||[\beta_i, \theta_i]-[\hat{\beta_i}, \hat{\theta_i}]||^2_2$$  
+    即参数之差的平方和。
+  - 对于所有的数据，还有一个adversarial loss。对encoder来说，目标是：  
+       $$\min L_{adv}(E)=\sum_i \mathbb{E}_{\Theta \sim p_E}[(D_i(E(I))-1)^2]$$  
+    即希望encoder能够让discriminator将其生成的参数判断为真。相对的对于discriminator，目标是：  
+       $$\min L_{dis}(D_i)=\mathbb{E}_{\Theta \sim data}[(D_i(\Theta)-1)^2]+\mathbb{E}_{\Theta \sim p_E}[D_i(E(I))^2]$$  
+    即希望discriminator能将生成的3D Mesh参数判断为假，同时将数据中3D Mesh参数判断为真。
   - 值得注意是，paper中用了多个discriminator。1个discriminator针对shape参数；1个discriminator针对所有的joints参数；23个discriminator针对每个joint。
-  - 综上，overall objective of encoder：$$L=\lambda(L_{reproj}+\mathbb{1}L_{3D})+L_{adv}$$
+  - 综上，overall objective of encoder：$L=\lambda(L_{reproj}+\mathbb{1}L_{3D})+L_{adv}$
 
 ### 总结
 
-基本上没有太多的知识点，methodology依赖于以下知识/概念：
+这个paper中最核心的思想是利用adversarial learning，在没有paired 2D/3D skeleton的情况下，学习3D human mesh。 如果我们将2D skeleton和3D skeleton看成是两个domains的话，这个思想是和`Cycle-GAN`的思想是一致的。
 
-- PointNet/PointNet++ [34, 35] 来处理基础的点云
-- 基于fast spectral convolution [36, 17, 11] 的graph convolution来处理点云中点之间的关系，以及joint之间的关系
-- Attention mechanism [常见的neural network中aggregation的方法] 来将unordered point features映射为ordered skeleton joint features
+methodology的理解依赖于以下知识/概念：  
+- Adversarial prior [47]。
+- 基于SMPL [24] 的human mesh model。
+- 基于ResNet [15] 的encoder网络。
+- iterative error feedback (IEF) loop [7, 9, 31]。
 
 ---
 
@@ -77,73 +93,44 @@ math: true
 
 ### dataset
 
-- Synthesized Dataset: SURREAL dataset[43] provides SMPL shape and pose parameters for models captured in real scenarios, which enables generations of large numbers of human shapes with large variations and reasonable poses.
-- Dyna Dataset [32] offers registered meshes with SMPL topology.
-- DFAUST Dataset [6] provides raw scans of several persons in different motions.
-- Berkeley MHAD dataset [26] provides two depth sequences from Kinect with human joint locations.
+- MS COCO, Human3.6M, MPI-INF-3DHP, LSP
 
 ### Metrics
 
-- Synthesized dataset & Dyna Dataset (who have ground truth): the average vertex-wise Euclidean distance. (Note that we use vertex-wise distance rather than vertex-to-surface distance as it can better reﬂect the distortion of reconstructed results.)
-- DFAUST dataset & MHAD dataset (unknown ground truth): the average point-to-vertex distance.
+- Mean per joint position error (MPJPE)
+- Reconstruction error: MPJPE after rigid alignment of the prediction with ground truth via Procrustes Analysis [11]
+- Percentage of Correct Keypoints(PCK) thresholded at 150mm
+- the Area Under the Curve (AUC) over a rage of PCK thresholds [27].
 
-### Ablation Study
+### Experiments
 
-- 借由替换提出的三个模块，作者证明了每个模块的有用性
-- 列出了initial results和fine tuning results，证明了fine tuning的有用性
-- 值得注意的是，作者**将身体不同地方loss用颜色可视化在了Mesh上**，并展示了fine tuning后身体各处的loss减少了
-
-### Comparisons to the State-of-the-art
-
-- Baseline: [5, 20]
-
-### Limitation
-
-- 作者说our method has relatively large errors in female shape reconstruction，especially in chest, belly, and hip part。We conjecture this is inherited from the SMPL representation, since SMPLify-mesh exhibits similar problems. The possible reason may be that SMPL model only uses 10 parameters for shapes, which makes it hard to model body parts with a larger derivation from neutral shapes.
-- Another major limitation is that our method is restricted to SMPL model and can only reconstruct naked human shapes.
-
-# 值得注意的reference
----
-
-- [46] Dynamic graph CNN for learning on point clouds
-  - require a global knn graph, which results in $O(N^2)$ complexity in both space and time
-- [13]
-  - directly learn to reconstruct 3D human from point clouds
-  - directly learned to deform a given template for human reconstruction, but often obtained twisted human shapes, especially in the shape arms.
-  - **a Laplacian term to regularize/smooth over-bent shapes**
-  - Baseline
-- [20]
-  - directly learn to reconstruct 3D human from point clouds
-  - proposed a variational auto-encoder to learn for deformable shape completion, which often results in rugged surfaces.
-- [16]
-  - hard to directly regress SMPL parameters from image features
-- [31]
-  - hard to directly regress SMPL parameters from image features
-- [48, 15, 14]
-  - temporal consistency of acting persons
-- [54, 4, 1]
-  - reconstruct clothes and textures
-- [55, 45]
-  - IMU sensor is introduced for robust pose estimation in recent works
-- [42, 31, 16, 5, 27, 1, 28]
-  - reconstruct 3D human from images
-- [40, 33, 47]
-  - reconstruct human shape by predicting dense correspondence to a body surface
-- [19]
-  - proposed to use LSTM to leverage joint relations, but it only allows to propagate features from parent joints to their children.
-- [5] SMPLify
-  - proposed several important pose priors to prevent over-bent shapes and achieve successful reconstruction.
-  - SMPLify-mesh 可以给出reconstruction的上界
-- 文中提到了三类graph convolutional networks:
-  - spatial-based methods [25, 41] learn features by directly filtering local neighbors on graph, and only a limited number of neighbors can be considered in each layer because of memory restriction.
-  - Spectral-based methods [7, 23] learn features in Fourier domain constructed by the eigen-decomposition of Laplacian matrix. However, the unstable and computationally expensive eigen-decomposition makes it unsuitable to process noisy point data.
-  - A compromise is the fast spectral convolution on graphs [36, 17, 11], which uses a k-order Chebyshev polynomial to approximate the spectral convolution and thus avoids eigen-decomposition
-
-
+- 作者对比了与baseline的结果
+- 计算了时间，证明可以实时
+- 做了Human Body Segmentation的实验
+- 有/无 paired 3D supervision的实验
 
 # 未解决的疑问
 ---
-- 如何做graph convolutional networks？（基础知识欠缺）
+
+- iterative error feedback (IEF) loop [7, 9, 31] 是一个什么样的过程？（进一步调研）
+- [5, 20]中对于SMPL和2D joints数目不匹配的问题的解决方案（进一步调研）
+- 什么是Reconstruction error: MPJPE after rigid alignment of the prediction with ground truth via Procrustes Analysis [11] ; Reconstruction error removes global misalignments and evaluates the quality of the reconstructed 3D skeleton （进一步调研）
+- [20]中好像有使用SMPL做body segment
+
+# 启发意义的点
+---
+
+- iterative error feedback (IEF) loop [7, 9, 31] 可以帮助优化3D mesh的重构过程。
+- 在解决问题的时候可以把要解决的问题考虑为多个domain，用adversarial learning的方式协助解决问题。
+- 对于SMPL和2D joints数目不匹配的问题，[5, 20]似乎有相应的解决方案。
+- Reconstruction error[11] 似乎可以给出没有global misalignments的结果
+- Metrics中的PCK和AUC值得参考
+- SMPL脸上的点与2D的标注有对应关系，如(在0-index下)
+  - nose: 333
+  - left eye: 2801
+  - right eye: 6261
+  - left ear: 584
+  - right ear: 4072
 
 
 
