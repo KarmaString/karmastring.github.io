@@ -56,41 +56,12 @@ math: true
   - $\Theta=\{\theta, beta, R, t, s\}$；其中$\theta$（23x3个pose参数）和$\beta$（10个shape参数）是SMPLmodel的输入参数；$R$（可以由一个长度为3的旋转向量表示）是global rotation；$t$（2个参数）是x，y平面上的translation；$s$ （1个参数）mesh的scale。
 - 第二步：用SMPL生成Mesh，并计算reprojection loss，3D loss和adversarial loss。
   - 目标的Mesh是用SMPL生成的，即$M(\theta, \beta)$。另外SMPL还会给出对应的3D joints，即$X(\theta, \beta)$
-  - 有了3D joints之后，可以将其映射回2D的image: $\hat{x} = s\Pi (RX(\theta, \beta))+t$
-  -于是我们有了一个reprejection的loss：$L_{reproj}$
-
-### Modified PointNet++ Module
-
-具体实现是在PointNet++中每次MLP之前，做一下基于k-nearest neighbor生成的graph的spectral convolution。目的是为了explore point interactions。
-
-### Attention Module
-
-这个部分就是用基础的attention mechanism来计算skeleton joint features。作者在这里提到了permutation invariance的概念，并且例举了一些没法achieve permutation invariance的方法。
-
-### Skeleton Graph Module
-
-作者说之所以没有直接生成SMPL的参数是因为：SMPL shape and pose parameters interact in a nonlinear way. Shape parameters are used for joint predictions in the rest pose, which are further coupled with joint transformations derived from pose parameters.
-
-### Offline Training + Online Tuning
-
-Offline Training: 
-
-- synthesized dataset
-- 2 losses: vertex distance \( \lambda_v a^2 \); Laplacian term to regularize/smooth over-bent shapes \( \lambda_{lap} \)
-
-> $$L_v={1\over{N_4}} \sum^{N_4}_{i=1} ||\hat{v}_i-v_i||^2_2$$  
-> In which \(\hat{v_i}\) is the vertex in the reconstructed mesh, and \(v_i\) is the vertex in the ground truth mesh.
-
-Online Tuning:
-
-- loss: Chamfer distance between the input point cloud and the reconstructed mesh.
-
-> $$L_{ch}=\sum^{N_4}_{i=1} min_{j \in [1, N_1]} ||\hat{v_i} - p_j||^2_2 + \sum^{N_1}_{j=1} min_{i \in [1, N_4]} ||p_j - \hat{v_i}||^2_2$$  
-> In which \(\hat{v_i}\) is the vertex in the reconstructed mesh, and \(p_j\) is the point in the point cloud.  
-> 也就是说，在公式前半部分，对于生成的Mesh上的每个点，找到其对应的point cloud上的点之间的距离，并求和；公式后半部分，则反过来  
->  以上理解参考了 [_C-LOG: A Chamfer distance based algorithm for localisation in occupancy grid-maps_ ](https://www.sciencedirect.com/science/article/pii/S2468232216300555)中对Chamfer distance的说法，它是一种图像中的matching算法。如果我们用U来表示query image，用V表示reference image，则：  
-> The Chamfer distance between U and V is given by the average of distances between each point ui∈U, n(U) = n and its nearest edge in V  
-> $$d_{CD}={1 \over n} \sum_{u_i \in U} {min}_{v_j \in V}|u_i-v_j|$$
+  - 有了3D joints之后，可以将其映射回2D的image: $$\hat{x} = s\Pi (RX(\theta, \beta))+t$$
+  - 对于所有的数据，我们有了一个reprejection的loss：$$L_{reproj}=\sum_i||v_i(x_i-\hat{x}_i)||_1$$ 其中$x_i \in \mathbb{R}^{2 \times K}$，为第$i$个ground truth 2D joints。$v_i \in \{0, 1\}^K$是visibility，当对应joint可见时为1，不可见时为0。
+  - 额外的，对于那些有着对应ground truth 3D joints的数据，还有3D loss： $$L_{3D}=L_{3D joints}+L_{3D smpl}$$其中$$L_{3D joints}=||X_i-\hat{X}_i||^2_2$$，即生成的3D joints与ground truth 3D joints的欧氏距离的平方。$$L_{3D smpl}=||[\beta_i, \theta_i]-[\hat{\beta_i}, \hat{\theta_i}]||^2_2$$，即参数之差的平方和。
+  - 对于所有的数据，还有一个adversarial loss。对encoder来说，目标是：$$\min L_{adv}(E)=\sum_i \mathbb{E}_{\Theta \sim p_E}[(D_i(E(I))-1)^2]$$即希望encoder能够让discriminator将其生成的参数判断为真。相对的对于discriminator，目标是：$$\min L_{dis}(D_i)=\mathbb{E}_{\Theta \sim data}[(D_i(\Theta)-1)^2]+\mathbb{E}_{\Theta \sim p_E}[D_i(E(I))^2]$$，即希望discriminator能将生成的3D Mesh参数判断为假，同时将数据中3D Mesh参数判断为真。
+  - 值得注意是，paper中用了多个discriminator。1个discriminator针对shape参数；1个discriminator针对所有的joints参数；23个discriminator针对每个joint。
+  - 综上，overall objective of encoder：$$L=\lambda(L_{reproj}+\mathbb{1}L_{3D})+L_{adv}$$
 
 ### 总结
 
