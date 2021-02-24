@@ -59,15 +59,15 @@ math: true
   - 将这个2048维的向量，通过`3D Regression Module`得到85个参数 $\Theta$
   - $\Theta=\{\theta, beta, R, t, s\}$；其中$\theta$（23x3个pose参数）和$\beta$（10个shape参数）是SMPLmodel的输入参数；$R$（可以由一个长度为3的旋转向量表示）是global rotation；$t$（2个参数）是x，y平面上的translation；$s$ （1个参数）mesh的scale。
 - 第二步：用SMPL生成Mesh，并计算reprojection loss，3D loss和adversarial loss。
-  - 目标的Mesh是用SMPL生成的，即$M(\theta, \beta)$。另外SMPL还会给出对应的3D joints，即$X(\theta, \beta)$
-  - 有了3D joints之后，可以将其映射回2D的image: $\hat{x} = s\Pi (RX(\theta, \beta))+t$
-  - 对于所有的数据，我们有了一个reprejection的loss: $L_{reproj}=\sum_i||v_i(x_i-\hat{x}_i)||_1$  
-    其中$x_i \in \mathbb{R}^{2 \times K}$，为第$i$个ground truth 2D joints；$v_i \in \{0, 1\}^K$是visibility，当对应joint可见时为1，不可见时为0。
+  - 目标的Mesh是用SMPL生成的，即$M(\theta, \beta)$。另外SMPL还会给出对应的3D joints，即$X(\theta, \beta)$  
+  - 有了3D joints之后，可以将其映射回2D的image: $\hat{x} = s\Pi (RX(\theta, \beta))+t$  
+  - 对于所有的数据，我们有了一个reprejection的loss: $L_{reproj}=\sum_i \Vert v_i(x_i-\hat{x}_i) \Vert_1$
+    其中$x_i \in \mathbb{R}^{2 \times K}$，为第$i$个ground truth 2D joints；$v_i \in \{0, 1 \}^K$是visibility，当对应joint可见时为1，不可见时为0。
   - 额外的，对于那些有着对应ground truth 3D joints的数据，还有3D loss: $L_{3D}=L_{3D joints}+L_{3D smpl}$  
     其中  
-       $$L_{3DJoints} = || X_i - \hat{X}_i ||^2_2$$  
+       $$L_{3DJoints} = \Vert X_i - \hat{X}_i \Vert^2_2$$  
     即生成的3D joints与ground truth 3D joints的欧氏距离的平方。  
-       $$L_{3DSMPL}=||[\beta_i, \theta_i]-[\hat{\beta_i}, \hat{\theta_i}]||^2_2$$  
+       $$L_{3DSMPL}=\Vert [\beta_i, \theta_i]-[\hat{\beta_i}, \hat{\theta_i}] \Vert^2_2$$  
     即参数之差的平方和。
   - 对于所有的数据，还有一个adversarial loss。对encoder来说，目标是：  
        $$\min L_{adv}(E)=\sum_i \mathbb{E}_{\Theta \sim p_E}[(D_i(E(I))-1)^2]$$  
